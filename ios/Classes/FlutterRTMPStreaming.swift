@@ -24,7 +24,7 @@ public class FlutterRTMPStreaming : NSObject {
     }
     
     @objc
-    public func startVideoStreaming(url: String, width: Int, height: Int, bitrate: Int) {
+    public func open(url: String, width: Int, height: Int, bitrate: Int) {
         rtmpStream = RTMPStream(connection: rtmpConnection)
         rtmpStream.captureSettings = [
             .sessionPreset: AVCaptureSession.Preset.hd1280x720,
@@ -71,7 +71,7 @@ public class FlutterRTMPStreaming : NSObject {
                 }
             }
             self.rtmpConnection.connect(self.url ?? "frog")
-            self.rtmpStream.publish("jkbfbewfw")
+            self.rtmpStream.publish(self.name)
         }
     }
     
@@ -122,6 +122,7 @@ public class FlutterRTMPStreaming : NSObject {
                    "errorDescription" : "rtmp disconnected"])
         
     }
+
     @objc
     public func pauseVideoStreaming() {
         rtmpStream.paused = true

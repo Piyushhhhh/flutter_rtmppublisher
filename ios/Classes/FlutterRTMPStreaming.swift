@@ -126,9 +126,12 @@ public class FlutterRTMPStreaming : NSObject {
     public func startVideoStreaming(url: String, width: Int, height: Int, bitrate: Int) {
       rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio)) { error in
     // print(error)
+       eventSink(["event" : "rtmp_stream_audio_failed",
+                   "errorDescription" : error])
     }
       rtmpStream.attachCamera(DeviceUtil.device(withPosition: .back)) { error in
-  
+      eventSink(["event" : "rtmp_stream_video_failed",
+                   "errorDescription" : error])
     }
     let hkView = HKView(frame: view.bounds)
     hkView.videoGravity = AVLayerVideoGravity.resizeAspectFill

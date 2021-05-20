@@ -121,7 +121,27 @@ public class FlutterRTMPStreaming : NSObject {
                    "errorDescription" : "rtmp disconnected"])
         
     }
-    
+
+    @objc
+    public func startVideoStreaming(url: String, width: Int, height: Int, bitrate: Int) {
+      rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio)) { error in
+    // print(error)
+    }
+      rtmpStream.attachCamera(DeviceUtil.device(withPosition: .back)) { error in
+  
+    }
+    let hkView = HKView(frame: view.bounds)
+    hkView.videoGravity = AVLayerVideoGravity.resizeAspectFill
+    hkView.attachStream(rtmpStream)
+
+// add ViewController#view
+    view.addSubview(hkView)
+
+    rtmpConnection.connect(url)
+    rtmpStream.publish("first try")
+
+    }
+
     @objc
     public func pauseVideoStreaming() {
         rtmpStream.paused = true

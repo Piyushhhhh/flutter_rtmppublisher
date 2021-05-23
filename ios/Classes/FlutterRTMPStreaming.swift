@@ -70,10 +70,12 @@ public class FlutterRTMPStreaming : NSObject {
                     break;
                 }
             }
-            self.rtmpStream.attachScreen()
+          debugPrint(url )
+            self.rtmpStream.attachScreen(ScreenCaptureSession(shared: UIApplication.shared))
             self.rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio), automaticallyConfiguresApplicationAudioSession: false)
         
             self.rtmpConnection.connect(self.url ?? "frog")
+            self.rtmpStream.publish(self.name ?? "streamName")
         }
     }
     

@@ -25,11 +25,25 @@ public class FlutterRTMPStreaming : NSObject {
     
     @objc
     public func open(url: String, width: Int, height: Int, bitrate: Int) {
-        rtmpStream = RTMPStream(connection: rtmpConnection)
+          rtmpStream = RTMPStream(connection: rtmpConnection)
         rtmpStream.captureSettings = [
-            .sessionPreset: AVCaptureSession.Preset.hd1280x720,
-            .continuousAutofocus: false,
-            .continuousExposure: false
+            .sessionPreset: AVCaptureSession.Preset.medium,
+            .preferredVideoStabilizationMode: AVCaptureVideoStabilizationMode.auto,
+            .fps: 30,
+            .continuousAutofocus:true,
+            .continuousExposure:true
+        ]
+        rtmpStream.audioSettings = [
+            .muted: false, // mute audio
+            .bitrate: 32 * 1024,
+            ]
+        
+        rtmpStream.videoSettings = [
+            .width: width,
+            .height: height,
+            .profileLevel: kVTProfileLevel_H264_High_AutoLevel,
+            .maxKeyFrameIntervalDuration: 2,
+            .bitrate: 1200 * 1024
         ]
         rtmpConnection.addEventListener(.rtmpStatus, selector:#selector(rtmpStatusHandler), observer: self)
         rtmpConnection.addEventListener(.ioError, selector: #selector(rtmpErrorHandler), observer: self)
@@ -44,39 +58,15 @@ public class FlutterRTMPStreaming : NSObject {
         var bits = url.components(separatedBy: "/")
         bits.removeLast()
         self.url = bits.joined(separator: "/")
-        rtmpStream.videoSettings = [
-            .width: width,
-            .height: height,
-            .profileLevel: kVTProfileLevel_H264_Baseline_AutoLevel,
-            .maxKeyFrameIntervalDuration: 2,
-            .bitrate: bitrate
-        ]
-        rtmpStream.captureSettings = [
-            .fps: 30
-        ]
+     
         rtmpStream.delegate = myDelegate
         self.retries = 0
         // Run this on the ui thread.
-        DispatchQueue.main.async {
-            if let orientation = DeviceUtil.videoOrientation(by:  UIApplication.shared.statusBarOrientation) {
-                self.rtmpStream.orientation = orientation
-                print(String(format:"Orient %d", orientation.rawValue))
-                switch (orientation) {
-                case .landscapeLeft, .landscapeRight:
-                    self.rtmpStream.videoSettings[.width] = height;
-                    self.rtmpStream.videoSettings[.height] = height;
-                    break;
-                default:
-                    break;
-                }
-            }
-          debugPrint(url )
-            self.rtmpStream.attachScreen(ScreenCaptureSession(shared: UIApplication.shared))
+        self.rtmpStream.attachCamera(DeviceUtil.device(withPosition: .unspecified))
             self.rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio), automaticallyConfiguresApplicationAudioSession: false)
         
             self.rtmpConnection.connect(self.url ?? "frog")
             self.rtmpStream.publish(self.name ?? "streamName")
-        }
     }
     
     @objc

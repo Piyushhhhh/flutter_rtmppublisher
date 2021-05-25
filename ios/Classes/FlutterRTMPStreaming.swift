@@ -25,7 +25,7 @@ public class FlutterRTMPStreaming : NSObject {
     
     @objc
     public func open(url: String, width: Int, height: Int, bitrate: Int) {
-          rtmpStream = RTMPStream(connection: rtmpConnection)
+                rtmpStream = RTMPStream(connection: rtmpConnection)
         rtmpStream.captureSettings = [
             .sessionPreset: AVCaptureSession.Preset.medium,
             .preferredVideoStabilizationMode: AVCaptureVideoStabilizationMode.auto,
@@ -34,8 +34,9 @@ public class FlutterRTMPStreaming : NSObject {
             .continuousExposure:true
         ]
         rtmpStream.audioSettings = [
-            .muted: false, // mute audio
             .bitrate: 32 * 1024,
+            .muted : false,
+            
             ]
         
         rtmpStream.videoSettings = [
@@ -61,12 +62,25 @@ public class FlutterRTMPStreaming : NSObject {
      
         rtmpStream.delegate = myDelegate
         self.retries = 0
-        // Run this on the ui thread.
-        self.rtmpStream.attachCamera(DeviceUtil.device(withPosition: .unspecified))
-            self.rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio), automaticallyConfiguresApplicationAudioSession: false)
         
-            self.rtmpConnection.connect(self.url ?? "frog")
+        self.rtmpStream.attachCamera(DeviceUtil.device(withPosition: .unspecified))
+        
+        DispatchQueue.main.async {
+               if let orientation = DeviceUtil.videoOrientation(by:  UIApplication.shared.statusBarOrientation) {
+                   self.rtmpStream.orientation = orientation
+                   print(String(format:"Orient %d", orientation.rawValue))
+                   switch (orientation) {
+                   case .landscapeLeft, .landscapeRight:
+                       self.rtmpStream.videoSettings[.width] = height;
+                       self.rtmpStream.videoSettings[.height] = height;
+                       break;
+                   default:
+                       break;
+                   }
+               }
+             self.rtmpConnection.connect(self.url ?? "frog")
             self.rtmpStream.publish(self.name ?? "streamName")
+           }
     }
     
     @objc
